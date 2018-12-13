@@ -3,13 +3,19 @@ package psql
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 
 	_ "github.com/lib/pq"
 )
 
-func TestUserStore(t *testing.T) {
+func TestMain(m *testing.M) {
+	code := setup(m)
+	os.Exit(code)
+}
+
+func setup(m *testing.M) int {
 	const (
 		dropDB          = `DROP DATABASE IF EXISTS test_user_store;`
 		createDB        = `CREATE DATABASE test_user_store;`
@@ -47,10 +53,21 @@ func TestUserStore(t *testing.T) {
 		panic(fmt.Errorf("sql.Open() err = %s", err))
 	}
 	defer db.Close()
+
 	_, err = db.Exec(createUserTable)
 	if err != nil {
 		panic(fmt.Errorf("db.Exec() err = %s", err))
 	}
+
+	return m.Run()
+}
+
+func TestUserStore(t *testing.T) {
+	db, err := sql.Open("postgres", "host=localhost port=5432 user=jacky sslmode=disable dbname=test_user_store")
+	if err != nil {
+		panic(fmt.Errorf("sql.Open() err = %s", err))
+	}
+	defer db.Close()
 
 	us := &UserStore{
 		sql: db,

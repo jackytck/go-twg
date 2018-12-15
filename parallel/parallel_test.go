@@ -11,7 +11,16 @@ func TestA(t *testing.T) {
 }
 
 func TestB(t *testing.T) {
+	// t.Parallel()
+	t.Run("Sub1", func(tt *testing.T) {
+		tt.Parallel()
+		time.Sleep(time.Second * 1)
+	})
 
+	t.Run("Sub2", func(tt *testing.T) {
+		tt.Parallel()
+		time.Sleep(time.Second * 1)
+	})
 }
 
 func TestC(t *testing.T) {

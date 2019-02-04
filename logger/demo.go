@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"sync"
 )
 
 // DemoV1 is the original implementation.
@@ -66,6 +67,45 @@ func (t Thing) DemoV5() {
 	}
 }
 
+// DemoV6 demonstrates default logger.
+func DemoV6(logger Logger) {
+	if logger == nil {
+		logger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	}
+	err := doTheThing()
+	if err != nil {
+		logger.Println("error in doTheThing():", err)
+		logger.Printf("error in doTheThing(): %v\n", err)
+	}
+}
+
+// ThingV2 injects as a struct with default logger getter.
+type ThingV2 struct {
+	Logger interface {
+		Println(...interface{})
+		Printf(string, ...interface{})
+	}
+
+	once sync.Once
+}
+
+func (t *ThingV2) logger() Logger {
+	t.once.Do(func() {
+		if t.Logger == nil {
+			t.Logger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+		}
+	})
+	return t.Logger
+}
+
+// DemoV7 uses struct as dependency.
+func (t *ThingV2) DemoV7() {
+	err := doTheThing()
+	if err != nil {
+		t.logger().Println("error in doTheThing():", err)
+		t.logger().Printf("error in doTheThing(): %v\n", err)
+	}
+}
 func doTheThing() error {
 	return errors.New("error opening file: nat.txt")
 }
